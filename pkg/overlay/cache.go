@@ -165,12 +165,18 @@ func (o *Cache) Refresh(ctx context.Context) error {
 		return err
 	}
 
-	for _, node := range near {
-		pinged, err := o.DHT.Ping(ctx, *node)
+	for _, n := range near {
+		pinged, err := o.DHT.Ping(ctx, *n)
 		if err != nil {
 			return err
 		}
-		err = o.DB.Put([]byte(pinged.Id), []byte(pinged.Address.Address))
+
+		data, err := proto.Marshal(&pinged)
+		if err != nil {
+			return err
+		}
+
+		err = o.DB.Put(node.IDFromString(pinged.Id).Bytes(), data)
 		if err != nil {
 			return err
 		}
@@ -182,13 +188,19 @@ func (o *Cache) Refresh(ctx context.Context) error {
 		return err
 	}
 
-	for _, node := range nodes {
-		pinged, err := o.DHT.Ping(ctx, *node)
+	for _, n := range nodes {
+		pinged, err := o.DHT.Ping(ctx, *n)
 		if err != nil {
 			zap.Error(ErrNodeNotFound)
 			return err
 		}
-		err = o.DB.Put([]byte(pinged.Id), []byte(pinged.Address.Address))
+
+		data, err := proto.Marshal(&pinged)
+		if err != nil {
+			return err
+		}
+
+		err = o.DB.Put(node.IDFromString(pinged.Id).Bytes(), data)
 		if err != nil {
 			return err
 		}
